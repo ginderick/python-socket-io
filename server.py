@@ -1,8 +1,11 @@
+from asyncore import write
+from genericpath import isfile
 import socketio
-import uvicorn
+import eventlet
+import os
 
-sio = socketio.AsyncServer(async_mode='asgi')
-app = socketio.ASGIApp(sio)
+sio = socketio.Server()
+app = socketio.WSGIApp(sio)
 
 
 
@@ -15,49 +18,49 @@ def disconnect(sid, message):
     print(f'disconnected')
 
 @sio.event
-async def sum(sid, data):
+def sum(sid, data):
     result = data['numbers'][0] + data['numbers'][1]
     return {'result': result}
 
-# @sio.event
-# async def file(sid, data):
-#     print(f'file from server invoked')
-    
-
-#     file_size = data['file_size']
-#     file_name = data['file_name']
-    
-
-#     with open("./rec/" + file_name, "wb") as file:
-#         c = 0
-
-#         while c <= int(file_size):
-#             print(c)
-#             file_data = data['data'] 
-#             print(f'File data len: {len(file_data)}')
-#             if not file_data:
-#                 print('finished')
-#                 break
-            
-#             file.write(file_data)
-#             c += len(file_data)
-
 @sio.event
-def message(sid, data):
-    file_size = data['file_size']
+def receive_file(sid, data):
+    print('Emit from client')
+    write_file(data)
+    merge_file(data)
+
+def write_file(data):
+
     file_name = data['file_name']
+    bytes_read = data['bytes_read']
+
+    #  write the binary from client
+    with open(file_name, "wb") as file:
+        file.write(bytes_read)
+
+
+
+def merge_file(data):
+
+    current_chunk = data['current_chunk']
     
 
-    with open("./rec/" + file_name, "wb") as file:
+    chunk = 0
 
-        file_data = data['data'] 
-        print(f'File data len: {len(file_data)}')
+    with open("ytCopy.jpg", "wb") as fileM:
+        fileName = "chunk" + str(current_chunk) + ".txt"
+        print(f' File is {isfile(fileName)}')
 
-        file.write(file_data)
+        with open(fileName, "rb") as fileTemp:
+            byte = fileTemp.read(1024)
+            fileM.write(byte)
 
+            chunk += 1
+    
+
+        
 
 
 
 if __name__ == "__main__":
-    uvicorn.run(app)
+    eventlet.wsgi.server(eventlet.listen(('', 5000)), app)
 

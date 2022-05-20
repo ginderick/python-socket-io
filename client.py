@@ -2,32 +2,46 @@ import asyncio
 import os
 import socketio
 
-sio = socketio.AsyncClient()
+sio = socketio.Client()
+
+SEPARATOR = "<SEPARATOR>"
 
 @sio.event
-async def connect():
+def connect():
     print('connected')
 
-    file_name = "yt.txt"
+    file_name = "doge.jpg"
     file_size = os.path.getsize(file_name)
 
-    with open(file_name, 'rb') as file:
+    #  Determine chunks by file_size/1024
+    chunks =  file_size/1024
+
+    with open(file_name, "rb") as file:
         
-        data = file.read(1024)
-        await sio.send({'data': data, 'file_name': file_name, 'file_size': file_size})
+        chunk = 0
 
+        # read the bytes from the file
+        bytes_read  = file.read(1024)
 
-    
+        while bytes_read:
+            if chunk == 0: print(bytes_read)
+            file_name = "chunk" + str(chunk) + ".txt"
+            sio.emit('receive_file', {"total_chunk": chunks, "current_chunk": chunk, "file_name": file_name, 'bytes_read': bytes_read})
+            
+            bytes_read = file.read(1024)
+            chunk += 1
+        
 
+            
 @sio.event
-async def disconnect():
+def disconnect():
     print('disconnected')
 
 
-async def main():
-    await sio.connect('http://localhost:8000')
-    await sio.wait()
 
 
-asyncio.run(main())
+
+
+sio.connect('http://localhost:5000')
+
 
