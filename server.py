@@ -26,7 +26,7 @@ def sum(sid, data):
 def receive_file(sid, data):
     print('Emit from client')
     write_file(data)
-    merge_file(data)
+    
 
 def write_file(data):
 
@@ -38,23 +38,24 @@ def write_file(data):
         file.write(bytes_read)
 
 
+@sio.event
+def merge_file(sid, data):
 
-def merge_file(data):
-
-    current_chunk = data['current_chunk']
+    total_chunk = data['total_chunk']
     
 
     chunk = 0
 
     with open("ytCopy.jpg", "wb") as fileM:
-        fileName = "chunk" + str(current_chunk) + ".txt"
-        print(f' File is {isfile(fileName)}')
+        while chunk <= total_chunk:
+            fileName = "chunk" + str(chunk) + ".txt"
+            print(f' File is {isfile(fileName)}')
 
-        with open(fileName, "rb") as fileTemp:
-            byte = fileTemp.read(1024)
-            fileM.write(byte)
+            with open(fileName, "rb") as fileTemp:
+                byte = fileTemp.read(1024)
+                fileM.write(byte)
 
-            chunk += 1
+                chunk += 1
     
 
         

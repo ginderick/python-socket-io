@@ -1,4 +1,3 @@
-import asyncio
 import os
 import socketio
 
@@ -30,6 +29,8 @@ def connect():
             
             bytes_read = file.read(1024)
             chunk += 1
+    
+    sio.emit('merge_file', {"total_chunk": chunks, "file_name": file_name, 'bytes_read': bytes_read})
         
 
             
