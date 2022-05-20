@@ -9,13 +9,13 @@ SEPARATOR = "<SEPARATOR>"
 def connect():
     print('connected')
 
-    file_name = "doge.jpg"
-    file_size = os.path.getsize(file_name)
+    filename = "doge.jpg"
+    file_size = os.path.getsize(filename)
 
     #  Determine chunks by file_size/1024
-    chunks =  file_size/1024
+    total_chunk =  file_size/1024
 
-    with open(file_name, "rb") as file:
+    with open(filename, "rb") as file:
         
         chunk = 0
 
@@ -23,16 +23,11 @@ def connect():
         bytes_read  = file.read(1024)
 
         while bytes_read:
-            if chunk == 0: print(bytes_read)
-            file_name = "chunk" + str(chunk) + ".txt"
-            sio.emit('receive_file', {"total_chunk": chunks, "current_chunk": chunk, "file_name": file_name, 'bytes_read': bytes_read})
             
+            file_name = "chunk" + str(chunk) + ".txt"
+            sio.emit('receive_file', {"total_chunk": total_chunk, "current_chunk": chunk, "file_name": filename, 'bytes_read': bytes_read})
             bytes_read = file.read(1024)
             chunk += 1
-    
-    sio.emit('merge_file', {"total_chunk": chunks, "file_name": file_name, 'bytes_read': bytes_read})
-        
-
             
 @sio.event
 def disconnect():

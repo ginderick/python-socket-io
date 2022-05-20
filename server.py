@@ -3,6 +3,7 @@ from genericpath import isfile
 import socketio
 import eventlet
 import os
+import math
 
 sio = socketio.Server()
 app = socketio.WSGIApp(sio)
@@ -24,8 +25,11 @@ def sum(sid, data):
 
 @sio.event
 def receive_file(sid, data):
-    print('Emit from client')
-    write_file(data)
+    chunk = data['current_chunk']
+    total_chunk = data['total_chunk']
+    print(f"Progress {round(chunk/total_chunk*100, 2)}")
+    sio.start_background_task(write_file, data)
+    
     
 
 def write_file(data):
@@ -34,32 +38,8 @@ def write_file(data):
     bytes_read = data['bytes_read']
 
     #  write the binary from client
-    with open(file_name, "wb") as file:
+    with open("copy"+ file_name, "ab") as file:
         file.write(bytes_read)
-
-
-@sio.event
-def merge_file(sid, data):
-
-    total_chunk = data['total_chunk']
-    
-
-    chunk = 0
-
-    with open("ytCopy.jpg", "wb") as fileM:
-        while chunk <= total_chunk:
-            fileName = "chunk" + str(chunk) + ".txt"
-            print(f' File is {isfile(fileName)}')
-
-            with open(fileName, "rb") as fileTemp:
-                byte = fileTemp.read(1024)
-                fileM.write(byte)
-
-                chunk += 1
-    
-
-        
-
 
 
 if __name__ == "__main__":
